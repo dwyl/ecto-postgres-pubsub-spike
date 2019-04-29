@@ -59,14 +59,6 @@ defmodule App.Accounts do
     end
   end
 
-  def create_address_history(address) do
-     params = address |> Map.from_struct() |> Map.put(:ref_id, address.id)
-
-     %AddressHistory{}
-     |> AddressHistory.changeset(params)
-     |> Repo.insert!()
-  end
-
   @doc """
   Updates a address.
 
@@ -115,5 +107,13 @@ defmodule App.Accounts do
   """
   def change_address(%Address{} = address) do
     Address.changeset(address, %{})
+  end
+
+  defp create_address_history(address) do
+     params = address |> Map.from_struct() |> Map.put(:ref_id, address.id)
+
+     %AddressHistory{}
+     |> AddressHistory.changeset(params)
+     |> Repo.insert!()
   end
 end
