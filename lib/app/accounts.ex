@@ -80,9 +80,12 @@ defmodule App.Accounts do
 
   """
   def update_address(%Address{} = address, attrs) do
-    address
-    |> Address.changeset(attrs)
-    |> Repo.update()
+    with changeset <- Address.changeset(address, attrs),
+         {:ok, address} <- Repo.update(changeset),
+         _address_history <- create_address_history(address)
+    do
+      {:ok, address}
+    end
   end
 
   @doc """

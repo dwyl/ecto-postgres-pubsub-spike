@@ -1,7 +1,7 @@
 defmodule App.AccountsTest do
   use App.DataCase
 
-  alias App.Accounts
+  alias App.{Accounts, AddressHistory, Repo}
 
   describe "addresses" do
     alias App.Accounts.Address
@@ -38,7 +38,7 @@ defmodule App.AccountsTest do
     test "create_address/1 with valid data also creates address_history" do
       assert {:ok, %Address{} = address} = Accounts.create_address(@valid_attrs)
       assert address.address_line_1 == "some address_line_1"
-      address_history = App.Repo.get_by(App.AddressHistory, ref_id: address.id)
+      address_history = Repo.get_by(AddressHistory, ref_id: address.id)
       assert address.id == address_history.ref_id
     end
 
@@ -50,11 +50,17 @@ defmodule App.AccountsTest do
       address = address_fixture()
       assert {:ok, %Address{} = address} = Accounts.update_address(address, @update_attrs)
       assert address.address_line_1 == "some updated address_line_1"
-      assert address.address_line_2 == "some updated address_line_2"
-      assert address.city == "some updated city"
-      assert address.name == "some updated name"
-      assert address.postcode == "some updated postcode"
       assert address.tel == "some updated tel"
+    end
+
+    test "update_address/2 with valid data inserts new address into address history" do
+      address = address_fixture()
+      assert {:ok, %Address{} = address} = Accounts.update_address(address, @update_attrs)
+      assert address.address_line_1 == "some updated address_line_1"
+      assert address.tel == "some updated tel"
+
+      assert length(Repo.all(Address)) == 1
+      assert length(Repo.all(AddressHistory)) == 2
     end
 
     test "update_address/2 with invalid data returns error changeset" do
