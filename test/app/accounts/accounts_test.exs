@@ -32,11 +32,14 @@ defmodule App.AccountsTest do
     test "create_address/1 with valid data creates a address" do
       assert {:ok, %Address{} = address} = Accounts.create_address(@valid_attrs)
       assert address.address_line_1 == "some address_line_1"
-      assert address.address_line_2 == "some address_line_2"
-      assert address.city == "some city"
-      assert address.name == "some name"
-      assert address.postcode == "some postcode"
       assert address.tel == "some tel"
+    end
+
+    test "create_address/1 with valid data also creates address_history" do
+      assert {:ok, %Address{} = address} = Accounts.create_address(@valid_attrs)
+      assert address.address_line_1 == "some address_line_1"
+      address_history = App.Repo.get_by(App.AddressHistory, ref_id: address.id)
+      assert address.id == address_history.ref_id
     end
 
     test "create_address/1 with invalid data returns error changeset" do
