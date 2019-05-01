@@ -39,7 +39,7 @@ defmodule App.AccountsTest do
       assert {:ok, %Address{} = address} = Accounts.create_address(@valid_attrs)
       assert address.address_line_1 == "some address_line_1"
       address_history = Repo.get_by(AddressHistory, ref_id: address.id)
-      assert address.id == address_history.ref_id
+      refute is_nil(address_history)
     end
 
     test "create_address/1 with invalid data returns error changeset" do
@@ -57,7 +57,6 @@ defmodule App.AccountsTest do
       address = address_fixture()
       assert {:ok, %Address{} = address} = Accounts.update_address(address, @update_attrs)
       assert address.address_line_1 == "some updated address_line_1"
-      assert address.tel == "some updated tel"
 
       assert length(Repo.all(Address)) == 1
       assert length(Repo.all(AddressHistory)) == 2

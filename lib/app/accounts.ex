@@ -7,7 +7,6 @@ defmodule App.Accounts do
   alias App.Repo
 
   alias App.Accounts.Address
-  alias App.AddressHistory
 
   @doc """
   Returns the list of addresses.
@@ -52,19 +51,10 @@ defmodule App.Accounts do
   """
   def create_address(attrs \\ %{}) do
     with changeset <- Address.changeset(%Address{}, attrs),
-         {:ok, address} <- Repo.insert(changeset),
-         _address_history <- create_address_history(address)
+         {:ok, address} <- Repo.insert(changeset)
     do
       {:ok, address}
     end
-  end
-
-  def create_address_history(address) do
-     params = address |> Map.from_struct() |> Map.put(:ref_id, address.id)
-
-     %AddressHistory{}
-     |> AddressHistory.changeset(params)
-     |> Repo.insert!()
   end
 
   @doc """
@@ -81,8 +71,7 @@ defmodule App.Accounts do
   """
   def update_address(%Address{} = address, attrs) do
     with changeset <- Address.changeset(address, attrs),
-         {:ok, address} <- Repo.update(changeset),
-         _address_history <- create_address_history(address)
+         {:ok, address} <- Repo.update(changeset)
     do
       {:ok, address}
     end
