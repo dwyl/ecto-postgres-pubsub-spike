@@ -52,6 +52,7 @@ defmodule App.Accounts do
   def create_address(attrs \\ %{}) do
     with changeset <- Address.changeset(%Address{}, attrs),
          {:ok, address} <- Repo.insert(changeset)
+         # _address_history <- create_address_history(address) # moved to listener module
     do
       {:ok, address}
     end
@@ -72,6 +73,7 @@ defmodule App.Accounts do
   def update_address(%Address{} = address, attrs) do
     with changeset <- Address.changeset(address, attrs),
          {:ok, address} <- Repo.update(changeset)
+         # _address_history <- create_address_history(address) # moved to listener module
     do
       {:ok, address}
     end
@@ -105,4 +107,13 @@ defmodule App.Accounts do
   def change_address(%Address{} = address) do
     Address.changeset(address, %{})
   end
+
+  # This functionality has been moved to the listener module.
+  # def create_address_history(address) do
+  #    params = address |> Map.from_struct() |> Map.put(:ref_id, address.id)
+  #
+  #    %App.AddressHistory{}
+  #    |> App.AddressHistory.changeset(params)
+  #    |> Repo.insert!()
+  # end
 end
