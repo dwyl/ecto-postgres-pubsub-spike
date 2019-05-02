@@ -64,6 +64,12 @@ defmodule App.AccountsTest do
       assert %Ecto.Changeset{} = Accounts.change_address(address)
     end
 
+    test "inserting two addresses with the same tel fails" do
+      address = address_fixture()
+      assert Accounts.list_addresses() == [address]
+      assert {:error, _changeset} = Accounts.create_address(@valid_attrs)
+    end
+
     # The following tests test the trigger that was put on the address table.
     # The trigger is meant to be fired after any insert or update to the table
     # but does not appear to be happening for the tests. We have confirmed that
