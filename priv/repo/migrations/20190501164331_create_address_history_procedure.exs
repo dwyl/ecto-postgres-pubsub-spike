@@ -2,6 +2,8 @@ defmodule App.Repo.Migrations.CreateAddressHistoryProcedure do
   use Ecto.Migration
 
   def up do
+    # creates a function which returns a trigger that returns the same record
+    # that that the function was triggered by.
     execute """
     CREATE OR REPLACE FUNCTION notify_address_changes()
     RETURNS trigger AS $$
@@ -18,8 +20,11 @@ defmodule App.Repo.Migrations.CreateAddressHistoryProcedure do
     $$ LANGUAGE plpgsql;
     """
 
+    # ensures that the code before this line is run first
     flush()
 
+    # creates a trigger that listends for is called after any insert or update
+    # to the addresses table.
     execute """
     CREATE TRIGGER addresses_changed
     AFTER INSERT OR UPDATE
@@ -30,6 +35,7 @@ defmodule App.Repo.Migrations.CreateAddressHistoryProcedure do
   end
 
   def down do
+    # Drops the trigger on rollback
     execute """
     DROP TRIGGER addresses_changed ON addresses
     """

@@ -1,6 +1,9 @@
 defmodule App.Listener do
   use GenServer
 
+  # Creates a gen server that is started called when the application is started.
+  # when it is started, it calls App.Repo.listen with the trigger name to listen
+  # out for. 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts)
   end
@@ -20,6 +23,7 @@ defmodule App.Listener do
     with {:ok, data} <- Jason.decode(payload, keys: :atoms) do
       data.record
       |> create_address_history()
+      # Left this log in for testing purposes. Will remove at a later date
       |> IO.inspect(label: "===> ")
 
       {:noreply, :event_handled}
