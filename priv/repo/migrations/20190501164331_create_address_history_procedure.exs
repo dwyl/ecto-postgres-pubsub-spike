@@ -21,7 +21,7 @@ defmodule App.Repo.Migrations.CreateAddressHistoryProcedure do
     """
 
     # ensures that the code before this line is run first
-    flush()
+    # flush()
 
     # creates a trigger that listends for is called after any insert or update
     # to the addresses table.
