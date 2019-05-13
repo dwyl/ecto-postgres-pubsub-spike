@@ -107,13 +107,4 @@ defmodule App.Accounts do
   def change_address(%Address{} = address) do
     Address.changeset(address, %{})
   end
-
-  # This functionality has been moved to the listener module.
-  # def create_address_history(address) do
-  #    params = address |> Map.from_struct() |> Map.put(:ref_id, address.id)
-  #
-  #    %App.AddressHistory{}
-  #    |> App.AddressHistory.changeset(params)
-  #    |> Repo.insert!()
-  # end
 end
