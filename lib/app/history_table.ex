@@ -1,18 +1,22 @@
 defmodule App.HistoryTable do
   use Ecto.Migration
 
+  @doc """
+  This function is called in a migration file and is used to create / update
+  history versions of the table being created / altered in the migration
+  """
   def history do
-    Agent.update runner(), fn state ->
-      %{state | commands: create_update_history(state.commands)}
-    end
-    create_pg_notify_function(%{name: "tests"})
-    create_drop_trigger(%{name: "tests"})
+    Agent.get_and_update(runner(), fn state ->
+      {state, %{state | commands: add_history_commands(state.commands)}}
+    end)
+    |> create_trigger()
   end
 
-  defp create_update_history(commands) do
+  # This function handles creating a history version of a table that is being
+  # created or updates the history table if the orginal tables is altered.
+  defp add_history_commands(commands) do
     Enum.reduce(commands, [], fn
-      # if the create command was called then it we create a history version of
-      # the table that create was being called on.
+      # route to create a history version of the table being created
       {:create, table, subcommands} = command, acc ->
         history_table = Map.update!(table, :name, &(&1 <> "_history"))
         subcommands = add_ref_id_to_subcommands(subcommands, table)
@@ -21,15 +25,28 @@ defmodule App.HistoryTable do
         acc = [command | acc]
         [history_command | acc]
 
-      # currently if the command is anything other than create we return the
-      # list of commands
+      # route to alter the history version of the table being altered
+      {:alter, table, subcommands} = command, acc ->
+        history_table = Map.update!(table, :name, &(&1 <> "_history"))
+        history_command = {:alter, history_table, subcommands}
+
+        acc = [command | acc]
+        [history_command | acc]
+
       # This function can be extended to handle other cases, like tables being
-      # dropped etc.
-      {_command, _table, _subcommands} = t, acc ->
-        [t | acc]
+      # dropped etc. Right now we just return the command being called and do
+      # nothing with the history tables.
+      {_command, _table, _subcommands} = command, acc ->
+        [command | acc]
     end)
   end
 
+  # Adds the ref_id field to the list of commands. This ensures that the history
+  # table is created with a ref_id column which references the id field of the
+  # original table
+  # This means that for now all tables using this function will need to have an
+  # id column. This can potentially be changed in future but for now will be a
+  # requirement
   defp add_ref_id_to_subcommands(subcommands, table) do
     ref_id = {:add, :ref_id,
      %Ecto.Migration.Reference{
@@ -52,7 +69,24 @@ defmodule App.HistoryTable do
     end
   end
 
-  def create_pg_notify_function(table) do
+  # PostgreSQL trigger functions
+
+  # Takes a command state and creates a trigger on the new table/tables being
+  # created. Ignores tables with _history in the name so that is doesn't create
+  # triggers on the history tables.
+  defp create_trigger(state) do
+    Enum.each(state.commands, fn
+      {:create, table, _subcommands} = _command ->
+        if not (table.name =~ "_history") do
+          create_pg_notify_function(table)
+          create_drop_trigger(table)
+        end
+      _ ->
+        nil
+    end)
+  end
+
+  defp create_pg_notify_function(table) do
     execute("""
     CREATE OR REPLACE FUNCTION notify_#{table.name}_changes()
     RETURNS trigger AS $$
@@ -70,7 +104,7 @@ defmodule App.HistoryTable do
     """, "")
   end
 
-  def create_drop_trigger(table) do
+  defp create_drop_trigger(table) do
     execute("""
     CREATE TRIGGER #{table.name}_changed
     AFTER INSERT OR UPDATE
