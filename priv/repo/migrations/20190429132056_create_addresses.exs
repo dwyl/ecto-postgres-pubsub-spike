@@ -14,5 +14,6 @@ defmodule App.Repo.Migrations.CreateAddresses do
     end
 
     create unique_index(:addresses, [:tel])
+    App.HistoryTable.history()
   end
 end
