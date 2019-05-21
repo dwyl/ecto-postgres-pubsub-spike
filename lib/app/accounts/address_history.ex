@@ -1,4 +1,4 @@
-defmodule App.AddressHistory do
+defmodule App.Accounts.AddressHistory do
   use Ecto.Schema
   import Ecto.Changeset
 

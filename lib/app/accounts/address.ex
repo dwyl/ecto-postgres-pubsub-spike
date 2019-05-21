@@ -18,5 +18,6 @@ defmodule App.Accounts.Address do
     address
     |> cast(attrs, [:name, :address_line_1, :address_line_2, :city, :postcode, :tel])
     |> validate_required([:name, :address_line_1, :address_line_2, :city, :postcode, :tel])
+    |> unique_constraint(:tel)
   end
 end

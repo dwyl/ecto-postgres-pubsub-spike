@@ -1,9 +1,9 @@
 defmodule App.Listener do
   use GenServer
 
-  # Creates a gen server that is started called when the application is started.
-  # when it is started, it calls App.Repo.listen with the trigger name to listen
-  # out for. 
+  # Creates a gen server that is started when the application is started.
+  # When it starts, it calls App.Repo.listen with the trigger name to listen
+  # out for.
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts)
   end
@@ -36,8 +36,8 @@ defmodule App.Listener do
   defp create_address_history(address_params) do
      params = Map.put(address_params, :ref_id, address_params.id)
 
-     %App.AddressHistory{}
-     |> App.AddressHistory.changeset(params)
+     %App.Accounts.AddressHistory{}
+     |> App.Accounts.AddressHistory.changeset(params)
      |> App.Repo.insert!()
   end
 end

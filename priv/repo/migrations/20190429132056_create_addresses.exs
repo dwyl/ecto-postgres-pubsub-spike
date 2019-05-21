@@ -13,5 +13,7 @@ defmodule App.Repo.Migrations.CreateAddresses do
       timestamps()
     end
 
+    create unique_index(:addresses, [:tel])
+    App.HistoryTable.history()
   end
 end
