@@ -17,26 +17,33 @@ defmodule App.HistoryTable do
   defp add_history_commands(commands) do
     Enum.reduce(commands, [], fn
       # route to create a history version of the table being created
-      {:create, table, subcommands} = command, acc ->
+      {:create, %Ecto.Migration.Table{} = table, subcommands} = command, acc ->
         history_table = Map.update!(table, :name, &(&1 <> "_history"))
         subcommands = add_ref_id_to_subcommands(subcommands, table)
         history_command = {:create, history_table, subcommands}
 
-        acc = [command | acc]
-        [history_command | acc]
+        # The database commands appear to be run in the reverse order to the
+        # list created here. As we need to ensure that create table commands
+        # happen first (so that when we reference the table in our history table
+        # for example the database doesn't error) so we add them to the end of
+        # the accumulated list. The command to create the history table can go
+        # at the beginning of the list, meaning it will be processed by the
+        # database last.
+        [history_command] ++ acc ++ [command]
 
       # route to alter the history version of the table being altered
-      {:alter, table, subcommands} = command, acc ->
+      {:alter, %Ecto.Migration.Table{} = table, subcommands} = command, acc ->
         history_table = Map.update!(table, :name, &(&1 <> "_history"))
         history_command = {:alter, history_table, subcommands}
 
-        acc = [command | acc]
-        [history_command | acc]
+        [history_command] ++ acc ++ [command]
 
       # This function can be extended to handle other cases, like tables being
       # dropped etc. Right now we just return the command being called and do
       # nothing with the history tables.
-      {_command, _table, _subcommands} = command, acc ->
+      # This route currently handles everything other than creation or
+      # alteration of a table.
+      command, acc ->
         [command | acc]
     end)
   end
